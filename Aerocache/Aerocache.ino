@@ -1,190 +1,138 @@
-#include <Adafruit_RGBLCDShield.h>
-//#include <LiquidCrystal.h>
-Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-
-#define OFF 0x0   // BACKLIGHT COLORS
-#define RED 0x1
-#define YELLOW 0x3
-#define GREEN 0x2
-#define TEAL 0x6
-#define BLUE 0x4
-#define VIOLET 0x5
-#define WHITE 0x7 
-
 /*
+  LiquidCrystal Library - Hello World
 
-EXPERIMENTAL!
+ Demonstrates the use a 16x2 LCD display.  The LiquidCrystal
+ library works with all LCD displays that are compatible with the
+ Hitachi HD44780 driver. There are many of them out there, and you
+ can usually tell them by the 16-pin interface.
 
-#define REDLIGHT 3
-#define GREENLIGHT 5
-#define BLUELIGHT 6
- */
+ This sketch prints "Hello World!" to the LCD
+ and shows the time.
 
+  The circuit:
+ * LCD RS pin to digital pin 12
+ * LCD Enable pin to digital pin 11
+ * LCD D4 pin to digital pin 5
+ * LCD D5 pin to digital pin 4
+ * LCD D6 pin to digital pin 3
+ * LCD D7 pin to digital pin 2
+ * LCD R/W pin to ground
+ * LCD VSS pin to ground
+ * LCD VCC pin to 5V
+ * 10K resistor:
+ * ends to +5V and ground
+ * wiper to LCD VO pin (pin 3)
 
-int pin = 8;
+ Library originally added 18 Apr 2008
+ by David A. Mellis
+ library modified 5 Jul 2009
+ by Limor Fried (http://www.ladyada.net)
+ example added 9 Jul 2009
+ by Tom Igoe
+ modified 22 Nov 2010
+ by Tom Igoe
+ modified 7 Nov 2016
+ by Arturo Guadalupi
 
-unsigned long duration;
+ This example code is in the public domain.
 
-unsigned long starttime;
+ http://www.arduino.cc/en/Tutorial/LiquidCrystalHelloWorld
 
-unsigned long sampletime_ms = 30000;    //30 SECONDS
-
-unsigned long lowpulseoccupancy = 0;    //TIME SPENT IN LOW STATE OF PWM
-
-float ratio = 0;
-
-float concentration = 0;
-
-void setup() {
-
-    Serial.begin(9600);
-    lcd.begin(18,2);
-    lcd.setBacklight(BLUE)    //
-    
-    pinMode(pin,INPUT);
-    
-    starttime = millis();   //GETS CURRENT TIME
-    
-    Serial.print("Low Pulse Occupancy");
-    Serial.print(",  ");
-    Serial.print("Ratio");
-    Serial.print(", ");
-    Serial.println("Concentration");
-
-
-    /*
-
-    EXPIREMENTAL!
-
-    for (int i = 0, i < 255, i++) {
-      setBacklight(i, 0, 255-i);
-      delay(5);
-    }
-    for (int i = 0, i < 255, i++) {
-      setBacklight(255-i, i, 0);
-      delay(5);
-    }
-    for (int i = 0, i < 255, i++) {
-      setBacklight(0, 255-i, i);
-      delay(5);
-    }
-    
-    
-    */
-
-    
-}
-
-void loop() {
-    duration = pulseIn(pin, LOW);
-    
-    lowpulseoccupancy += duration;
-
-    if ((millis()-starttime) > sampletime_ms) {
-        
-        ratio = lowpulseoccupancy/(sampletime_ms*10.0);   //CONVERTS TIME SPENT IN LOW STATE TO %
-        
-        concentration = 1.1 * pow(ratio,3) - 3.8 * pow(ratio,2) + 520 * ratio + 0.62;  // IF x IS RATIO, THEN y = 1.1 *​x^​3-​3.8*​x^​2+​520*​x+​0.62            
-
-
-        lcd.setCursor(0, 0);
-        lcd.print("PM10 ");
-        lcd.setCursor(6, 0);
-        lcd.print(concentration, 3);
-        
-        Serial.print(lowpulseoccupancy);
-        Serial.print(", ");
-        Serial.print(ratio);
-        Serial.print(", ");
-        Serial.println(concentration);
-
-
-        if (concentration < 1000) {
-         
-          lcd.setCursor (0, 1);
-         
-          for (int i = 0; i < 16; ++i)    //ALLOWS TEXT TO APPEAR CENTERED; VALUE SUBJECT TO CHANGE
-             {
-                lcd.write(' ');
-             }
-
-          lcd.setCursor(4, 1);
-          lcd.print("CLEAN");
-    
-        }
-        else if (concentration >= 1000 && concentration < 10000) {
-    
-          lcd.setCursor (0, 1);
-         
-          for (int i = 0; i < 16; ++i)
-            {
-                lcd.write(' ');
-            }
-         
-          lcd.setCursor(4, 1);
-          lcd.print("GOOD");
-         
-        }
-        else if (concentration >= 10000 && concentration < 20000) {
-    
-          lcd.setCursor (0, 1);
-        
-          for (int i = 0; i < 16; ++i)
-            {
-                lcd.write(' ');
-            }
-          
-          lcd.setCursor(4, 1);
-          lcd.print("ACCEPTABLE");
-    
-        }
-        
-        if (concentration >= 20000 && concentration < 50000) {
-        
-          lcd.setCursor (0, 1);
-          
-          for (int i = 0; i < 16; ++i)
-            {
-                lcd.write(' ');
-            }
-               
-          lcd.setCursor(4, 1);
-          lcd.print("HEAVY");
-         
-        }
-    
-        if (concentration >= 50000 ) {
-          
-          lcd.setCursor (0, 1);
-          
-          for (int i = 0; i < 16; ++i)
-            {
-                lcd.write(' ');
-            }
-          
-          lcd.setCursor(4, 1);
-          lcd.print("HAZARD");
-        
-        } 
-
-        
-        lowpulseoccupancy = 0;
-        starttime = millis();
-    }
-/*
-    void setBacklight(uint8_t r, uint8_t g, uint8_t b) {
-           
-      // INVERT FOR COMMON ANODE  
-      r = map(r, 0, 255, 255, 0);
-      g = map(g, 0, 255, 255, 0);
-      b = map(b, 0, 255, 255, 0);
-      
-      analogWrite(REDLIGHT, r);
-      analogWrite(GREENLIGHT, g);
-      analogWrite(BLUELIGHT, b);
-    }
 */
 
+// include the library code:
+#include <LiquidCrystal.h>
+
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+int pin = 8;
+unsigned long duration;
+unsigned long starttime;
+unsigned long sampletime_ms = 30000;
+unsigned long lowpulseoccupancy = 0;
+float ratio = 0;
+float concentration = 0;
+void setup() {
+  Serial.begin(9600);
+  pinMode(8,INPUT);
+  starttime = millis();
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  // Print a message to the LCD.
+  lcd.print("Initializing...");
+}
+int counter = 0;
+void loop() {
+  duration = pulseIn(pin, LOW);
+  lowpulseoccupancy = lowpulseoccupancy+duration;
+
+  if ((millis()-starttime) > sampletime_ms)
+  {
+    ratio = lowpulseoccupancy/(sampletime_ms*10.0);  // Integer percentage 0=>100
+    concentration = 1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62; // using spec sheet curve
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Concentration = ");
+    lcd.setCursor(0,1);
+    lcd.print(concentration);
+    if (concentration<1000){
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Pristine");
+      delay(2000);
+      lcd.clear();
+      lcd.print("Initializing...");
+      lowpulseoccupancy = 0;
+      starttime = millis();}
+}
+// if error in code, than below this line or power cords(except the part where the numebers are weird, check indents of the first if statement and below)
+    if (concentration >= 1000 && concentration < 10000){
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Clean");
+      delay(2000);
+      lcd.clear();
+      lcd.print("Initializing...");
+      lowpulseoccupancy = 0;
+      starttime = millis();} 
+
+    if (concentration >= 10000 && concentration < 20000){
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Acceptable");
+      delay(2000);
+      lcd.clear();
+      lcd.print("Initializing...");
+      lowpulseoccupancy = 0;
+      starttime = millis();}  
+
+    if (concentration >= 20000 && concentration < 50000){
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Heavy");
+      delay(2000);
+      lcd.clear();
+      lcd.print("Initializing...");
+      lowpulseoccupancy = 0;
+      starttime = millis();}  
+
+     if (concentration>=50000){
+      delay(2000);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Hazard");
+      delay(2000);
+      lcd.clear();
+      lcd.print("Initializing...");
+      lowpulseoccupancy = 0;
+      starttime = millis();}  
+
+    
     
 }
