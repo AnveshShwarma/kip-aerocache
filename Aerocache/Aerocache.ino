@@ -36,7 +36,6 @@
 
  This example code is in the public domain.
 
- http://www.arduino.cc/en/Tutorial/LiquidCrystalHelloWorld
 
 */
 
